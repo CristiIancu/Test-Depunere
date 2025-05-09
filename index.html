@@ -2,10 +2,60 @@
 <html lang="ro">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rapididate Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    .timer {
+      font-size: 2em;
+      margin: 20px 0;
+      color: #007700;
+    }
+    .button {
+      font-size: 1.5em;
+      padding: 20px 40px;
+      background-color: #0055ff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 30px;
+    }
+    .button:hover {
+      background-color: #0040cc;
+    }
+  </style>
 </head>
 <body>
-  <h1>Bun venit!</h1>
-  <p>Aceasta este pagina de test pentru rapididate.</p>
+
+  <h1>Rapididate Test</h1>
+  <div class="timer" id="timer">Timp: 0 secunde</div>
+
+  <button class="button" onclick="downloadPDF()">📥 Descarcă formularul PDF</button>
+
+  <script>
+    // Pornim cronometrul
+    let startTime = Date.now();
+    const timerElement = document.getElementById('timer');
+
+    setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      timerElement.textContent = `Timp: ${elapsed} secunde`;
+    }, 1000);
+
+    // Funcție simplă de download
+    function downloadPDF() {
+      window.open("formular.pdf", "_blank");
+    }
+  </script>
+
 </body>
 </html>
