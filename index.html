@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rapididate Test</title>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -42,6 +41,11 @@
     .captcha-box {
       margin-top: 20px;
     }
+    canvas {
+      border: 1px solid #ccc;
+      margin: 10px auto;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -53,11 +57,14 @@
 
   <hr>
 
-  <h2>Încarcă formularul completat</h2>
+  <h2>Incarcă formularul completat</h2>
   <button class="button" onclick="showFirstCaptcha()">🔐 Încarcă formular completat</button>
 
   <div class="captcha-box hidden" id="firstCaptcha">
-    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="captcha1Success"></div>
+    <canvas id="captchaCanvas1" width="200" height="50"></canvas>
+    <input type="text" id="captchaInput1" placeholder="Scrie codul aici">
+    <br>
+    <button class="button" onclick="validateCaptcha1()">Verifică CAPTCHA</button>
   </div>
 
   <div class="hidden" id="uploadFormularSection">
@@ -80,7 +87,10 @@
   <button class="button" onclick="showFinalCaptcha()">✅ Finalizează</button>
 
   <div class="captcha-box hidden" id="finalCaptcha">
-    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="finalCaptchaSuccess"></div>
+    <canvas id="captchaCanvas2" width="200" height="50"></canvas>
+    <input type="text" id="captchaInput2" placeholder="Scrie codul aici">
+    <br>
+    <button class="button" onclick="validateCaptcha2()">Verifică CAPTCHA final</button>
   </div>
 
   <div id="doneMessage" class="hidden">
@@ -107,25 +117,72 @@
       document.body.removeChild(link);
     }
 
-    // Captcha pentru upload
+    // CAPTCHA Generation
+    function generateCaptchaText(length = 6) {
+      const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    function drawCaptcha(canvasId, captchaText) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = '30px Arial';
+      ctx.fillStyle = '#333';
+      ctx.fillText(captchaText, 20, 35);
+      // Distracție: linii random
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+        ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+        ctx.strokeStyle = '#ccc';
+        ctx.stroke();
+      }
+    }
+
+    // CAPTCHA 1
+    let captcha1 = '';
     function showFirstCaptcha() {
       document.getElementById("firstCaptcha").classList.remove("hidden");
+      captcha1 = generateCaptchaText();
+      drawCaptcha("captchaCanvas1", captcha1);
+    }
+    function validateCaptcha1() {
+      const input = document.getElementById("captchaInput1").value;
+      if (input === captcha1) {
+        document.getElementById("uploadFormularSection").classList.remove("hidden");
+        alert("CAPTCHA validat cu succes!");
+      } else {
+        alert("CAPTCHA incorect. Încearcă din nou.");
+        captcha1 = generateCaptchaText();
+        drawCaptcha("captchaCanvas1", captcha1);
+      }
     }
 
-    function captcha1Success() {
-      document.getElementById("uploadFormularSection").classList.remove("hidden");
-    }
-
-    // Final CAPTCHA
+    // CAPTCHA 2
+    let captcha2 = '';
     function showFinalCaptcha() {
       document.getElementById("finalCaptcha").classList.remove("hidden");
+      captcha2 = generateCaptchaText();
+      drawCaptcha("captchaCanvas2", captcha2);
     }
-
-    function finalCaptchaSuccess() {
-      clearInterval(timerInterval);
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      document.getElementById("finalTime").textContent = elapsed;
-      document.getElementById("doneMessage").classList.remove("hidden");
+    function validateCaptcha2() {
+      const input = document.getElementById("captchaInput2").value;
+      if (input === captcha2) {
+        clearInterval(timerInterval);
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById("finalTime").textContent = elapsed;
+        document.getElementById("doneMessage").classList.remove("hidden");
+        alert("Totul este complet! Mulțumim.");
+      } else {
+        alert("CAPTCHA final incorect. Reîncercă.");
+        captcha2 = generateCaptchaText();
+        drawCaptcha("captchaCanvas2", captcha2);
+      }
     }
   </script>
 
