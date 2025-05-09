@@ -1,190 +1,133 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rapididate Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RapidIDate Test</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 30px;
-      background-color: #f4f4f4;
-    }
-    h1 {
-      color: #333;
-    }
-    .timer {
-      font-size: 1.8em;
-      margin: 15px 0;
-      color: #006600;
-    }
-    .button {
-      font-size: 1.3em;
-      padding: 15px 30px;
-      background-color: #0055ff;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin: 15px;
-    }
-    .button:hover {
-      background-color: #003fcc;
-    }
-    .hidden {
-      display: none;
-    }
-    input[type="file"] {
-      margin-top: 10px;
-    }
-    .captcha-box {
-      margin-top: 20px;
-    }
-    canvas {
-      border: 1px solid #ccc;
-      margin: 10px auto;
-      display: block;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+    button { font-size: 18px; padding: 10px 20px; margin: 10px; }
+    #timer { font-size: 24px; margin: 20px 0; }
+    #captchaCanvas, #captchaCanvas2 { border: 1px solid #ccc; margin: 10px 0; }
+    .hidden { display: none; }
+    .upload-section { margin: 20px 0; }
   </style>
 </head>
 <body>
+  <h1>RapidIDate - Testare Formular</h1>
+  <div id="timer">Timp: 0 secunde</div>
+  <button onclick="downloadPDF()">Descarcă Formularul</button>
 
-  <h1>Rapididate Test</h1>
-  <div class="timer" id="timer">Timp: 0 secunde</div>
-
-  <button class="button" onclick="downloadPDF()">📥 Descarcă formularul PDF</button>
-
-  <hr>
-
-  <h2>Incarcă formularul completat</h2>
-  <button class="button" onclick="showFirstCaptcha()">🔐 Încarcă formular completat</button>
-
-  <div class="captcha-box hidden" id="firstCaptcha">
-    <canvas id="captchaCanvas1" width="200" height="50"></canvas>
-    <input type="text" id="captchaInput1" placeholder="Scrie codul aici">
-    <br>
-    <button class="button" onclick="validateCaptcha1()">Verifică CAPTCHA</button>
+  <div class="upload-section">
+    <h2>Încarcă formularul completat</h2>
+    <canvas id="captchaCanvas" width="200" height="60"></canvas>
+    <input type="text" id="captchaInput" placeholder="Introdu codul...">
+    <button onclick="validateCaptcha()">Verifică CAPTCHA</button>
+    <div id="captchaError" style="color:red;"></div>
+    <input type="file" id="completedForm" class="hidden">
   </div>
 
-  <div class="hidden" id="uploadFormularSection">
-    <input type="file" accept="application/pdf" id="formularUpload">
+  <div class="upload-section hidden" id="extraUploads">
+    <h2>Încarcă restul de fișiere (4 fișiere)</h2>
+    <input type="file"><br><br>
+    <input type="file"><br><br>
+    <input type="file"><br><br>
+    <input type="file"><br><br>
   </div>
 
-  <hr>
-
-  <h2>Încarcă celelalte 4 fișiere PDF</h2>
-  <div id="extraUploads">
-    <input type="file" accept="application/pdf"><br>
-    <input type="file" accept="application/pdf"><br>
-    <input type="file" accept="application/pdf"><br>
-    <input type="file" accept="application/pdf"><br>
+  <div class="upload-section hidden" id="finalSection">
+    <h2>Finalizare</h2>
+    <canvas id="captchaCanvas2" width="200" height="60"></canvas>
+    <input type="text" id="captchaInput2" placeholder="Introdu codul...">
+    <button onclick="validateFinalCaptcha()">Finalizare</button>
+    <div id="captchaError2" style="color:red;"></div>
   </div>
 
-  <hr>
-
-  <h2>Finalizare</h2>
-  <button class="button" onclick="showFinalCaptcha()">✅ Finalizează</button>
-
-  <div class="captcha-box hidden" id="finalCaptcha">
-    <canvas id="captchaCanvas2" width="200" height="50"></canvas>
-    <input type="text" id="captchaInput2" placeholder="Scrie codul aici">
-    <br>
-    <button class="button" onclick="validateCaptcha2()">Verifică CAPTCHA final</button>
-  </div>
-
-  <div id="doneMessage" class="hidden">
-    <h2>✔️ Gata! Formularul a fost trimis.</h2>
-    <p>Timp total: <span id="finalTime">0</span> secunde</p>
+  <div id="finishMessage" class="hidden">
+    <h2>Formularul a fost finalizat cu succes!</h2>
   </div>
 
   <script>
-    // Timer
-    let startTime = Date.now();
-    const timerElement = document.getElementById('timer');
-    let timerInterval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      timerElement.textContent = `Timp: ${elapsed} secunde`;
+    let time = 0;
+    let interval = setInterval(() => {
+      time++;
+      document.getElementById('timer').textContent = `Timp: ${time} secunde`;
     }, 1000);
 
-    // Descarcă PDF
     function downloadPDF() {
-      const link = document.createElement("a");
-      link.href = "formular.pdf";
-      link.download = "formular.pdf";
-      document.body.appendChild(link);
+      const link = document.createElement('a');
+      link.href = 'form.pdf';
+      link.download = 'form.pdf';
       link.click();
-      document.body.removeChild(link);
     }
 
-    // CAPTCHA Generation
-    function generateCaptchaText(length = 6) {
+    const captchaText = generateCaptcha();
+    const captchaText2 = generateCaptcha();
+    drawCaptcha('captchaCanvas', captchaText);
+    drawCaptcha('captchaCanvas2', captchaText2);
+
+    function generateCaptcha() {
       const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let result = '';
-      for (let i = 0; i < length; i++) {
+      for (let i = 0; i < 6; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       return result;
     }
 
-    function drawCaptcha(canvasId, captchaText) {
+    function drawCaptcha(canvasId, text) {
       const canvas = document.getElementById(canvasId);
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.font = '30px Arial';
-      ctx.fillStyle = '#333';
-      ctx.fillText(captchaText, 20, 35);
-      // Distracție: linii random
-      for (let i = 0; i < 5; i++) {
-        ctx.beginPath();
-        ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
-        ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
-        ctx.strokeStyle = '#ccc';
-        ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const colors = ['#000', '#444', '#222', '#880', '#a00', '#00a', '#088'];
+      for (let i = 0; i < text.length; i++) {
+        ctx.save();
+        const angle = (Math.random() - 0.5) * 0.7;
+        const x = 20 + i * 30;
+        const y = 35 + Math.random() * 10;
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+        ctx.fillText(text[i], 0, 0);
+        ctx.restore();
+      }
+
+      // Linie de interferență
+      ctx.strokeStyle = '#888';
+      ctx.beginPath();
+      ctx.moveTo(0, 30);
+      for (let i = 0; i < canvas.width; i += 10) {
+        ctx.lineTo(i, 30 + Math.sin(i * 0.1) * 10);
+      }
+      ctx.stroke();
+    }
+
+    function validateCaptcha() {
+      const input = document.getElementById('captchaInput').value;
+      if (input === captchaText) {
+        document.getElementById('captchaError').textContent = '';
+        document.getElementById('completedForm').classList.remove('hidden');
+        document.getElementById('extraUploads').classList.remove('hidden');
+        document.getElementById('finalSection').classList.remove('hidden');
+      } else {
+        document.getElementById('captchaError').textContent = 'Cod incorect. Încearcă din nou.';
       }
     }
 
-    // CAPTCHA 1
-    let captcha1 = '';
-    function showFirstCaptcha() {
-      document.getElementById("firstCaptcha").classList.remove("hidden");
-      captcha1 = generateCaptchaText();
-      drawCaptcha("captchaCanvas1", captcha1);
-    }
-    function validateCaptcha1() {
-      const input = document.getElementById("captchaInput1").value;
-      if (input === captcha1) {
-        document.getElementById("uploadFormularSection").classList.remove("hidden");
-        alert("CAPTCHA validat cu succes!");
+    function validateFinalCaptcha() {
+      const input = document.getElementById('captchaInput2').value;
+      if (input === captchaText2) {
+        document.getElementById('captchaError2').textContent = '';
+        document.getElementById('finishMessage').classList.remove('hidden');
+        clearInterval(interval);
       } else {
-        alert("CAPTCHA incorect. Încearcă din nou.");
-        captcha1 = generateCaptchaText();
-        drawCaptcha("captchaCanvas1", captcha1);
-      }
-    }
-
-    // CAPTCHA 2
-    let captcha2 = '';
-    function showFinalCaptcha() {
-      document.getElementById("finalCaptcha").classList.remove("hidden");
-      captcha2 = generateCaptchaText();
-      drawCaptcha("captchaCanvas2", captcha2);
-    }
-    function validateCaptcha2() {
-      const input = document.getElementById("captchaInput2").value;
-      if (input === captcha2) {
-        clearInterval(timerInterval);
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        document.getElementById("finalTime").textContent = elapsed;
-        document.getElementById("doneMessage").classList.remove("hidden");
-        alert("Totul este complet! Mulțumim.");
-      } else {
-        alert("CAPTCHA final incorect. Reîncercă.");
-        captcha2 = generateCaptchaText();
-        drawCaptcha("captchaCanvas2", captcha2);
+        document.getElementById('captchaError2').textContent = 'Cod incorect. Încearcă din nou.';
       }
     }
   </script>
-
 </body>
 </html>
