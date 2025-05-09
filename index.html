@@ -4,67 +4,128 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rapididate Test</title>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      padding: 40px;
+      padding: 30px;
       background-color: #f4f4f4;
     }
-
     h1 {
       color: #333;
     }
-
     .timer {
-      font-size: 2em;
-      margin: 20px 0;
-      color: #007700;
+      font-size: 1.8em;
+      margin: 15px 0;
+      color: #006600;
     }
-
     .button {
-      font-size: 1.5em;
-      padding: 20px 40px;
+      font-size: 1.3em;
+      padding: 15px 30px;
       background-color: #0055ff;
       color: white;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      margin-top: 30px;
-      transition: background-color 0.2s;
+      margin: 15px;
     }
-
     .button:hover {
-      background-color: #0040cc;
+      background-color: #003fcc;
+    }
+    .hidden {
+      display: none;
+    }
+    input[type="file"] {
+      margin-top: 10px;
+    }
+    .captcha-box {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
 
   <h1>Rapididate Test</h1>
-
   <div class="timer" id="timer">Timp: 0 secunde</div>
 
   <button class="button" onclick="downloadPDF()">📥 Descarcă formularul PDF</button>
 
+  <hr>
+
+  <h2>Încarcă formularul completat</h2>
+  <button class="button" onclick="showFirstCaptcha()">🔐 Încarcă formular completat</button>
+
+  <div class="captcha-box hidden" id="firstCaptcha">
+    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="captcha1Success"></div>
+  </div>
+
+  <div class="hidden" id="uploadFormularSection">
+    <input type="file" accept="application/pdf" id="formularUpload">
+  </div>
+
+  <hr>
+
+  <h2>Încarcă celelalte 4 fișiere PDF</h2>
+  <div id="extraUploads">
+    <input type="file" accept="application/pdf"><br>
+    <input type="file" accept="application/pdf"><br>
+    <input type="file" accept="application/pdf"><br>
+    <input type="file" accept="application/pdf"><br>
+  </div>
+
+  <hr>
+
+  <h2>Finalizare</h2>
+  <button class="button" onclick="showFinalCaptcha()">✅ Finalizează</button>
+
+  <div class="captcha-box hidden" id="finalCaptcha">
+    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="finalCaptchaSuccess"></div>
+  </div>
+
+  <div id="doneMessage" class="hidden">
+    <h2>✔️ Gata! Formularul a fost trimis.</h2>
+    <p>Timp total: <span id="finalTime">0</span> secunde</p>
+  </div>
+
   <script>
-    // Cronometru care pornește când pagina se încarcă
+    // Timer
     let startTime = Date.now();
     const timerElement = document.getElementById('timer');
-
-    setInterval(() => {
+    let timerInterval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       timerElement.textContent = `Timp: ${elapsed} secunde`;
     }, 1000);
 
-    // Funcție pentru descărcare automată a PDF-ului
+    // Descarcă PDF
     function downloadPDF() {
       const link = document.createElement("a");
-      link.href = "formular.pdf"; // asigură-te că acest fișier există în repo
+      link.href = "formular.pdf";
       link.download = "formular.pdf";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    }
+
+    // Captcha pentru upload
+    function showFirstCaptcha() {
+      document.getElementById("firstCaptcha").classList.remove("hidden");
+    }
+
+    function captcha1Success() {
+      document.getElementById("uploadFormularSection").classList.remove("hidden");
+    }
+
+    // Final CAPTCHA
+    function showFinalCaptcha() {
+      document.getElementById("finalCaptcha").classList.remove("hidden");
+    }
+
+    function finalCaptchaSuccess() {
+      clearInterval(timerInterval);
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById("finalTime").textContent = elapsed;
+      document.getElementById("doneMessage").classList.remove("hidden");
     }
   </script>
 
