@@ -11,14 +11,17 @@
       padding: 40px;
       background-color: #f4f4f4;
     }
+
     h1 {
       color: #333;
     }
+
     .timer {
       font-size: 2em;
       margin: 20px 0;
       color: #007700;
     }
+
     .button {
       font-size: 1.5em;
       padding: 20px 40px;
@@ -28,7 +31,9 @@
       border-radius: 10px;
       cursor: pointer;
       margin-top: 30px;
+      transition: background-color 0.2s;
     }
+
     .button:hover {
       background-color: #0040cc;
     }
@@ -37,12 +42,13 @@
 <body>
 
   <h1>Rapididate Test</h1>
+
   <div class="timer" id="timer">Timp: 0 secunde</div>
 
   <button class="button" onclick="downloadPDF()">📥 Descarcă formularul PDF</button>
 
   <script>
-    // Pornim cronometrul
+    // Cronometru care pornește când pagina se încarcă
     let startTime = Date.now();
     const timerElement = document.getElementById('timer');
 
@@ -51,9 +57,14 @@
       timerElement.textContent = `Timp: ${elapsed} secunde`;
     }, 1000);
 
-    // Funcție simplă de download
+    // Funcție pentru descărcare automată a PDF-ului
     function downloadPDF() {
-      window.open("formular.pdf", "_blank");
+      const link = document.createElement("a");
+      link.href = "formular.pdf"; // asigură-te că acest fișier există în repo
+      link.download = "formular.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   </script>
 
